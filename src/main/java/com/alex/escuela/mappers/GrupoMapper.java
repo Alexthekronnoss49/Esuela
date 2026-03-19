@@ -2,6 +2,7 @@ package com.alex.escuela.mappers;
 
 import com.alex.escuela.dto.aulas.AulasResponse;
 import com.alex.escuela.dto.datos.DatosCurso;
+import com.alex.escuela.dto.datos.DatosGrupo;
 import com.alex.escuela.dto.datos.DatosMaestro;
 import com.alex.escuela.dto.grupos.GrupoRequest;
 import com.alex.escuela.dto.grupos.GrupoResponse;
@@ -50,7 +51,6 @@ public class GrupoMapper implements CommonMapper<GrupoRequest, GrupoResponse, Gr
        DatosMaestro maestro = maestroMapper.maestroToDatosMaestro(entity.getMaestro());
        AulasResponse aula = aulasMapper.entityToResponse(entity.getAula());
 
-
         return new GrupoResponse(
                 entity.getId(),
                 curso,
@@ -64,6 +64,19 @@ public class GrupoMapper implements CommonMapper<GrupoRequest, GrupoResponse, Gr
                                 + horario.getHoraFin())
                         .toList(),
                 entity.getPeriodo());
+    }
+
+    public DatosGrupo gruposToDatosGrupo(Grupo grupo){
+        if (grupo == null) return null;
+
+        return new DatosGrupo(
+                grupo.getCurso().getNombre(),
+                String.join(" ",
+                        grupo.getMaestro().getNombre(),
+                        grupo.getMaestro().getApellidoPaterno(),
+                        grupo.getMaestro().getApellidoMaterno()),
+                grupo.getAula().getNombre(),
+                grupo.getPeriodo());
     }
 
 }

@@ -9,10 +9,7 @@ import com.alex.escuela.entities.Maestro;
 import com.alex.escuela.exceptions.EntidadRelacionadaException;
 import com.alex.escuela.exceptions.RecursoNoEncontradoException;
 import com.alex.escuela.mappers.GrupoMapper;
-import com.alex.escuela.repositories.AulaRepository;
-import com.alex.escuela.repositories.CursoRepository;
-import com.alex.escuela.repositories.GrupoRepository;
-import com.alex.escuela.repositories.MaestroRepository;
+import com.alex.escuela.repositories.*;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -33,6 +30,10 @@ public class GrupoServiceImpl implements GrupoService{
     private final MaestroRepository maestroRepository;
 
     private final AulaRepository aulaRepository;
+
+    private final InscripcionRepository inscripcionRepository;
+
+    private final HorarioRepository horarioRepository;
 
     private final GrupoMapper grupoMapper;
 
@@ -66,12 +67,30 @@ public class GrupoServiceImpl implements GrupoService{
 
     @Override
     public GrupoResponse actualizar(GrupoRequest request, Long id) {
-        return null;
+        Grupo grupo = obtenerGrupoOException(id);
+
+        comprobarNoDuplicidadActualizar(request.idCurso(),
+                request.idMaestro(), request.idAula(), request.periodo(), id);
+
+        Curso curso = obtenerCursoOException(request.idCurso());
+
+        Maestro maestro = obtenerMaestroOException(request.idMaestro());
+
+        Aula aula = obtenerAulaOException(request.idAula());
+
+        grupo.setCurso(curso);
+        grupo.setMaestro(maestro);
+        grupo.setAula(aula);
+        grupo.setPeriodo(request.periodo());
+
+        return grupoMapper.entityToResponse(grupo);
     }
 
     @Override
     public void eliminar(Long id) {
+        comprobarAntesDeEliminar(id);
 
+        grupoRepository.delete(obtenerGrupoOException(id));
     }
 
     private Grupo obtenerGrupoOException(Long id){
@@ -81,6 +100,12 @@ public class GrupoServiceImpl implements GrupoService{
 
     private void comprobarNoDuplicidad(Long idCurso, Long idMaestro, Long idAula, String periodo){
         if (grupoRepository.existsByCursoIdAndMaestroIdAndAulaIdAndPeriodo(idCurso, idMaestro, idAula, periodo)){
+            throw new EntidadRelacionadaException("Esta combinación ya existe");
+        }
+    }
+
+    private void comprobarNoDuplicidadActualizar(Long idCurso, Long idMaestro, Long idAula, String periodo, Long id){
+        if (grupoRepository.existsByCursoIdAndMaestroIdAndAulaIdAndPeriodoAndIdNot(idCurso, idMaestro, idAula, periodo, id)){
             throw new EntidadRelacionadaException("Esta combinación ya existe");
         }
     }
@@ -98,6 +123,15 @@ public class GrupoServiceImpl implements GrupoService{
     private Aula obtenerAulaOException(Long id){
         return aulaRepository.findById(id).orElseThrow(() ->
                 new RecursoNoEncontradoException("Aula no encontrada con el id: "+id));
+    }
+
+    private void comprobarAntesDeEliminar(Long id){
+        if (inscripcionRepository.existsByGrupoId(id)){
+            throw new EntidadRelacionadaException("Este grupo tiene inscripciones relacionadas");
+        }
+        if (horarioRepository.existsByGrupoId(id)){
+            throw new EntidadRelacionadaException("Este grupo tiene horarios relacionados");
+        }
     }
 
 }

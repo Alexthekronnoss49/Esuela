@@ -7,10 +7,10 @@ import jakarta.validation.constraints.NotNull;
 
 public record HorarioRequest(
         @NotNull(message = "El id del grupo no debe ser nulo")
-        Grupo grupo,
+        Long idGrupo,
 
         @NotBlank(message = "El día es requerido")
-        DiasSemana dia,
+        String dia,
 
         @NotBlank(message = "Se debe especificar la hora de inicio")
         String horaInicio,

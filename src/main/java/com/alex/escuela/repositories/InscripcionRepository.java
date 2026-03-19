@@ -6,4 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface InscripcionRepository extends JpaRepository<Inscripciones, Long> {
 
     boolean existsByAlumnoId(Long alumnoId);
+    boolean existsByGrupoId(Long id);
 }

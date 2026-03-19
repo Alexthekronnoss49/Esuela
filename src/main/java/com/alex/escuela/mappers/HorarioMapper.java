@@ -1,12 +1,19 @@
 package com.alex.escuela.mappers;
 
+import com.alex.escuela.dto.datos.DatosGrupo;
 import com.alex.escuela.dto.horarios.HorarioRequest;
 import com.alex.escuela.dto.horarios.HorarioResponse;
+import com.alex.escuela.entities.Grupo;
 import com.alex.escuela.entities.Horario;
+import com.alex.escuela.enums.DiasSemana;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@AllArgsConstructor
 public class HorarioMapper implements CommonMapper<HorarioRequest, HorarioResponse, Horario> {
+
+    private final GrupoMapper grupoMapper;
 
     @Override
     public Horario requestToEntity(HorarioRequest request) {
@@ -14,24 +21,37 @@ public class HorarioMapper implements CommonMapper<HorarioRequest, HorarioRespon
 
         Horario horario = new Horario();
 
-        horario.setGrupo(request.grupo());
-        horario.setDia(request.dia());
         horario.setHoraInicio(request.horaInicio());
         horario.setHoraFin(request.horaFin());
 
         return horario;
     }
 
+    public Horario requestToEntity(HorarioRequest request, Grupo grupo, DiasSemana dia) {
+        if (request == null) return null;
+
+        Horario horario = requestToEntity(request);
+
+        horario.setGrupo(grupo);
+        horario.setDia(dia);
+
+        return horario;
+    }
+
     @Override
-    public HorarioResponse entityToResponse(Horario entity) {
-        if (entity == null) return null;
+    public HorarioResponse entityToResponse(Horario horario) {
+        if (horario == null) return null;
+
+        DatosGrupo grupo = grupoMapper.gruposToDatosGrupo(horario.getGrupo());
 
         return new HorarioResponse(
-                entity.getId(),
-                entity.getGrupo().getId(),
-                entity.getDia().name(),
-                entity.getHoraInicio(),
-                entity.getHoraFin()
+                horario.getId(),
+                grupo,
+                String.join( " ",
+                        horario.getDia().getDescripcion(),
+                        horario.getHoraInicio()+" -",
+                        horario.getHoraFin()
+                )
         );
     }
 }
