@@ -8,11 +8,11 @@ import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
 public record InscripcionesResponse(
-        Long idInscripcion,
+        Long id,
         DatosAlumno alumno,
         DatosGrupo grupo,
         BigDecimal calificacion,
         @JsonFormat(pattern = "dd/MM/yyyy")
-        String fechaInsc
+        String fechaInscripcion
 ) {
 }

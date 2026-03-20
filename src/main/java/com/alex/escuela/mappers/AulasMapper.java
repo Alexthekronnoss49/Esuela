@@ -22,7 +22,6 @@ public class AulasMapper implements CommonMapper<AulasRequest, AulasResponse, Au
         if (entity == null) return null;
 
         return new AulasResponse(
-                entity.getId(),
                 entity.getNombre(),
                 entity.getCapacidad()
         );

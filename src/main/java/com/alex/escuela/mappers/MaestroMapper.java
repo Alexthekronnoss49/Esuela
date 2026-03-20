@@ -61,7 +61,6 @@ public class MaestroMapper implements CommonMapper<MaestroRequest, MaestroRespon
         if (maestro == null) return null;
 
         return new DatosMaestro(
-                maestro.getId(),
                 maestro.getNombre(),
                 maestro.getEmail(),
                 maestro.getTelefono());

@@ -60,7 +60,7 @@ public class InscripcionesMapper implements CommonMapper<InscripcionesRequest, I
 
         DatosGrupo grupo = grupoMapper.gruposToDatosGrupo(inscripcion.getGrupo());
 
-        BigDecimal calificacion = inscripcion.getCalificacion() == null ? BigDecimal.ZERO
+        BigDecimal calificacion = inscripcion.getCalificacion() == null ? null
                 : inscripcion.getCalificacion().getCalificacion();
 
         return new InscripcionesResponse(

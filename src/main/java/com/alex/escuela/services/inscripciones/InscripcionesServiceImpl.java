@@ -5,9 +5,11 @@ import com.alex.escuela.dto.inscripciones.InscripcionesResponse;
 import com.alex.escuela.entities.Alumno;
 import com.alex.escuela.entities.Grupo;
 import com.alex.escuela.entities.Inscripciones;
+import com.alex.escuela.exceptions.EntidadRelacionadaException;
 import com.alex.escuela.exceptions.RecursoNoEncontradoException;
 import com.alex.escuela.mappers.InscripcionesMapper;
 import com.alex.escuela.repositories.AlumnoRepository;
+import com.alex.escuela.repositories.CalificaionRepository;
 import com.alex.escuela.repositories.GrupoRepository;
 import com.alex.escuela.repositories.InscripcionRepository;
 import lombok.AllArgsConstructor;
@@ -24,6 +26,8 @@ import java.util.List;
 public class InscripcionesServiceImpl implements InscripcionService{
 
     private final InscripcionRepository inscripcionRepository;
+
+    private final CalificaionRepository calificaionRepository;
 
     private final GrupoRepository grupoRepository;
 
@@ -66,7 +70,7 @@ public class InscripcionesServiceImpl implements InscripcionService{
         Alumno alumno = obtenerAlumnoOException(request.idAlumno());
         Grupo grupo = obtenerGrupoOException(request.idGrupo());
 
-        comprobarAlumnoEnGrupo(request.idAlumno(), request.idGrupo());
+        comprobarAlumnoEnGrupoActualizar(request.idAlumno(), request.idGrupo(), id);
 
         inscripciones.setAlumno(alumno);
         inscripciones.setGrupo(grupo);
@@ -76,6 +80,7 @@ public class InscripcionesServiceImpl implements InscripcionService{
 
     @Override
     public void eliminar(Long id) {
+        comprobarCalificacionEnInscripcion(id);
         inscripcionRepository.delete(obtenerInscripcionOException(id));
     }
 
@@ -97,6 +102,18 @@ public class InscripcionesServiceImpl implements InscripcionService{
     private void comprobarAlumnoEnGrupo(Long idAlumno, Long idGrupo){
         if (inscripcionRepository.existsByAlumnoIdAndGrupoId(idAlumno, idGrupo)){
             throw new IllegalArgumentException("Este alumno ya está escrito a este grupo.");
+        }
+    }
+
+    private void comprobarAlumnoEnGrupoActualizar(Long idAlumno, Long idGrupo, Long id){
+        if (inscripcionRepository.existsByAlumnoIdAndGrupoIdAndIdNot(idAlumno, idGrupo, id)){
+            throw new IllegalArgumentException("Este alumno ya está escrito a este grupo.");
+        }
+    }
+
+    private void comprobarCalificacionEnInscripcion(Long idInscripcion){
+        if (calificaionRepository.existsByInscripcionId(idInscripcion)){
+            throw new EntidadRelacionadaException("Esta inscripción tiene una calificación");
         }
     }
 }

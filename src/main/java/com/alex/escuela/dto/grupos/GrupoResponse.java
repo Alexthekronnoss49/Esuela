@@ -13,7 +13,7 @@ public record GrupoResponse(
         DatosCurso curso,
         DatosMaestro maestro,
         AulasResponse aula,
-        List<String> horario,
+        List<String> horarios,
         String periodo
 ) {
 }

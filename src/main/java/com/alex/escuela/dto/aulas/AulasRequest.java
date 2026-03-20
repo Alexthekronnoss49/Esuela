@@ -10,6 +10,7 @@ public record AulasRequest(
 
         @NotNull(message = "La capacidad del aula es requerida")
         @Max(value = 40, message = "La capacidad máxima es de 40")
+        @Min(value = 1, message = "La capacidad mínima del aula debe ser mayor a 0")
         Integer capacidad
 ) {
 }

@@ -59,7 +59,7 @@ public class GrupoMapper implements CommonMapper<GrupoRequest, GrupoResponse, Gr
                 entity.getHorarios().stream()
                         .map(horario -> entity.getHorarios() == null
                                 ? "Sin horarios asignados"
-                                :  horario.getDia() + ": "
+                                :  horario.getDia().getDescripcion() + ": "
                                 + horario.getHoraInicio() + "-"
                                 + horario.getHoraFin())
                         .toList(),
