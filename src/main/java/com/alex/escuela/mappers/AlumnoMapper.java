@@ -29,13 +29,11 @@ public class AlumnoMapper implements CommonMapper<AlumnoRequest, AlumnoResponse,
     public Alumno requestToEntity(AlumnoRequest request) {
         if (request == null ) return null;
 
-        LocalDate fecha = LocalDate.now();
-
         return Alumno.builder()
                 .nombre(request.nombre())
                 .apellidoPaterno(request.apellidoPaterno())
                 .apellidoMaterno(request.apellidoMaterno())
-                .fechaIngreso(fecha)
+                .fechaIngreso(LocalDate.now())
                 .build();
     }
 
@@ -63,7 +61,7 @@ public class AlumnoMapper implements CommonMapper<AlumnoRequest, AlumnoResponse,
                 ),
                 entity.getEmail(),
                 entity.getMatricula(),
-                entity.getFechaIngreso().toString(),
+                entity.getFechaIngreso().format(formato),
                 calificaciones,
                 calificacionesToPromedio(calificaciones));
     }
@@ -102,15 +100,6 @@ public class AlumnoMapper implements CommonMapper<AlumnoRequest, AlumnoResponse,
 
     public DatosAlumno alumnoToDatosAlumno(Alumno alumno){
         if (alumno == null) return null;
-        /*
-        SimpleDateFormat formato = new SimpleDateFormat("dd/MM/yyyy");
-
-        try {
-            Date fecha = formato.parse(alumno.getFechaIngreso().toString());
-        }catch (ParseException e){
-            throw new IllegalArgumentException("No se pudo formatear la fecha.");
-        }*/
-
 
         return new DatosAlumno(
                 String.join(" ",
@@ -119,6 +108,6 @@ public class AlumnoMapper implements CommonMapper<AlumnoRequest, AlumnoResponse,
                         alumno.getApellidoMaterno()),
                 alumno.getEmail(),
                 alumno.getMatricula(),
-                alumno.getFechaIngreso().toString());
+                alumno.getFechaIngreso().format(formato));
     }
 }

@@ -17,6 +17,7 @@ import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 @Component
@@ -26,6 +27,8 @@ public class InscripcionesMapper implements CommonMapper<InscripcionesRequest, I
     private final AlumnoMapper alumnoMapper;
 
     private final GrupoMapper grupoMapper;
+
+    private final DateTimeFormatter formato = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     @Override
     public Inscripciones requestToEntity(InscripcionesRequest request) {
@@ -60,14 +63,12 @@ public class InscripcionesMapper implements CommonMapper<InscripcionesRequest, I
         BigDecimal calificacion = inscripcion.getCalificacion() == null ? BigDecimal.ZERO
                 : inscripcion.getCalificacion().getCalificacion();
 
-        SimpleDateFormat formato = new SimpleDateFormat("dd/MM/yyyy");
-
         return new InscripcionesResponse(
                 inscripcion.getId(),
                 alumno,
                 grupo,
                 calificacion,
-                inscripcion.getFechaInscripcion().toString()
+                inscripcion.getFechaInscripcion().format(formato)
         );
     }
 
@@ -81,7 +82,7 @@ public class InscripcionesMapper implements CommonMapper<InscripcionesRequest, I
         return new DatosInscripcion(
                 alumno,
                 grupo,
-                inscripciones.getFechaInscripcion().toString());
+                inscripciones.getFechaInscripcion().format(formato));
     }
 
 }

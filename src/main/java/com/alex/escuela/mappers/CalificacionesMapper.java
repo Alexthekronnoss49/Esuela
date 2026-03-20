@@ -10,12 +10,15 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 @Component
 @AllArgsConstructor
 public class CalificacionesMapper implements CommonMapper<CalificacionesRequest, CalificacionesResponse, Calificacion> {
 
     private final InscripcionesMapper inscripcionesMapper;
+
+    private final DateTimeFormatter formato = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     @Override
     public Calificacion requestToEntity(CalificacionesRequest request) {
@@ -48,7 +51,7 @@ public class CalificacionesMapper implements CommonMapper<CalificacionesRequest,
                 calificacion.getId(),
                 inscripcion,
                 calificacion.getCalificacion(),
-                calificacion.getFechaRegistro().toString()
+                calificacion.getFechaRegistro().format(formato)
         );
     }
 }
