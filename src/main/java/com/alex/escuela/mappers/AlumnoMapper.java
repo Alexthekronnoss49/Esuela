@@ -2,16 +2,23 @@ package com.alex.escuela.mappers;
 
 import com.alex.escuela.dto.alumnos.AlumnoRequest;
 import com.alex.escuela.dto.alumnos.AlumnoResponse;
+import com.alex.escuela.dto.datos.DatosAlumno;
 import com.alex.escuela.dto.datos.DatosCalificaion;
+import com.alex.escuela.dto.datos.DatosMaestro;
 import com.alex.escuela.entities.Alumno;
+import com.alex.escuela.entities.Maestro;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Component
 public class AlumnoMapper implements CommonMapper<AlumnoRequest, AlumnoResponse, Alumno> {
@@ -22,10 +29,13 @@ public class AlumnoMapper implements CommonMapper<AlumnoRequest, AlumnoResponse,
     public Alumno requestToEntity(AlumnoRequest request) {
         if (request == null ) return null;
 
+        LocalDate fecha = LocalDate.now();
+
         return Alumno.builder()
                 .nombre(request.nombre())
                 .apellidoPaterno(request.apellidoPaterno())
                 .apellidoMaterno(request.apellidoMaterno())
+                .fechaIngreso(fecha)
                 .build();
     }
 
@@ -53,7 +63,7 @@ public class AlumnoMapper implements CommonMapper<AlumnoRequest, AlumnoResponse,
                 ),
                 entity.getEmail(),
                 entity.getMatricula(),
-                entity.getFechaIngreso().format(formato),
+                entity.getFechaIngreso().toString(),
                 calificaciones,
                 calificacionesToPromedio(calificaciones));
     }
@@ -88,5 +98,27 @@ public class AlumnoMapper implements CommonMapper<AlumnoRequest, AlumnoResponse,
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         return suma.divide(BigDecimal.valueOf(calificacionesValidas.size()), 2, RoundingMode.HALF_UP);
+    }
+
+    public DatosAlumno alumnoToDatosAlumno(Alumno alumno){
+        if (alumno == null) return null;
+        /*
+        SimpleDateFormat formato = new SimpleDateFormat("dd/MM/yyyy");
+
+        try {
+            Date fecha = formato.parse(alumno.getFechaIngreso().toString());
+        }catch (ParseException e){
+            throw new IllegalArgumentException("No se pudo formatear la fecha.");
+        }*/
+
+
+        return new DatosAlumno(
+                String.join(" ",
+                        alumno.getNombre(),
+                        alumno.getApellidoPaterno(),
+                        alumno.getApellidoMaterno()),
+                alumno.getEmail(),
+                alumno.getMatricula(),
+                alumno.getFechaIngreso().toString());
     }
 }

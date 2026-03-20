@@ -2,11 +2,13 @@ package com.alex.escuela.services.horarios;
 
 import com.alex.escuela.dto.horarios.HorarioRequest;
 import com.alex.escuela.dto.horarios.HorarioResponse;
+import com.alex.escuela.entities.Aula;
 import com.alex.escuela.entities.Grupo;
 import com.alex.escuela.entities.Horario;
 import com.alex.escuela.enums.DiasSemana;
 import com.alex.escuela.exceptions.RecursoNoEncontradoException;
 import com.alex.escuela.mappers.HorarioMapper;
+import com.alex.escuela.repositories.AulaRepository;
 import com.alex.escuela.repositories.GrupoRepository;
 import com.alex.escuela.repositories.HorarioRepository;
 import lombok.AllArgsConstructor;
@@ -30,6 +32,8 @@ public class HorarioServiceImpl implements HorarioService{
 
     private final GrupoRepository grupoRepository;
 
+    private final AulaRepository aulaRepository;
+
     private final HorarioMapper horarioMapper;
 
     @Override
@@ -51,10 +55,12 @@ public class HorarioServiceImpl implements HorarioService{
     public HorarioResponse registrar(HorarioRequest request) {
 
         Grupo grupo = obtenerGrupoOException(request.idGrupo());
-
         DiasSemana dia = DiasSemana.fromDescripcion(request.dia());
+        LocalTime inicio = validarFormatoHoraInicio(request.horaInicio());
+        LocalTime fin = validarFormatoHoraFin(request.horaFin());
 
-        vaidarCongruencia(request.horaInicio(), request.horaFin());
+        vaidarCongruencia(inicio, fin);
+        evitarTraslapes(dia, inicio, fin, grupo);
 
         Horario horario = horarioRepository.save(horarioMapper.requestToEntity(request, grupo, dia));
 
@@ -63,12 +69,28 @@ public class HorarioServiceImpl implements HorarioService{
 
     @Override
     public HorarioResponse actualizar(HorarioRequest request, Long id) {
-        return null;
+        if (request == null || id == null)return null;
+
+        Horario horario = obtenerhorarioOException(id);
+        Grupo grupo = obtenerGrupoOException(request.idGrupo());
+        DiasSemana dia = DiasSemana.fromDescripcion(request.dia());
+        LocalTime inicio = validarFormatoHoraInicio(request.horaInicio());
+        LocalTime fin = validarFormatoHoraFin(request.horaFin());
+
+        vaidarCongruencia(inicio, fin);
+        evitarTraslapes(dia, inicio, fin, grupo);
+
+        horario.setGrupo(grupo);
+        horario.setDia(dia);
+        horario.setHoraInicio(request.horaInicio());
+        horario.setHoraFin(request.horaFin());
+
+        return horarioMapper.entityToResponse(horario);
     }
 
     @Override
     public void eliminar(Long id) {
-
+        horarioRepository.delete(obtenerhorarioOException(id));
     }
 
     private Grupo obtenerGrupoOException(Long id){
@@ -79,6 +101,11 @@ public class HorarioServiceImpl implements HorarioService{
     private Horario obtenerhorarioOException(Long id){
         return horarioRepository.findById(id).orElseThrow(() ->
                 new RecursoNoEncontradoException("Horario no encontrado con el id: "+id));
+    }
+
+    private Aula obtenerAulaOException(Long id){
+        return aulaRepository.findById(id).orElseThrow(() ->
+                new RecursoNoEncontradoException("Aula no encontrado con el id: "+id));
     }
 
     public LocalTime validarFormatoHoraInicio(String horaInicio){
@@ -101,12 +128,42 @@ public class HorarioServiceImpl implements HorarioService{
         }
     }
 
-    public void vaidarCongruencia(String horaInicio, String horaFin){
-        LocalTime inicio = validarFormatoHoraInicio(horaInicio);
-        LocalTime fin = validarFormatoHoraFin(horaFin);
+    public void vaidarCongruencia(LocalTime horaInicio, LocalTime horaFin){
 
-        if (inicio.isAfter(fin) || fin.isBefore(inicio)){
+        if (horaInicio.isAfter(horaFin)){
             throw new IllegalArgumentException("La hora de inicio no puede ser mayor a la de fin y viceversa");
         }
     }
+
+    public void evitarTraslapes(DiasSemana dia, LocalTime inicio, LocalTime fin, Grupo grupo){
+
+        Aula aula = obtenerAulaOException(grupo.getAula().getId());
+
+        List<Grupo> gruposRelacionadosConAula =  grupoRepository.findByAulaId(aula.getId());
+
+        for (Grupo grupoR : gruposRelacionadosConAula) {
+
+            List<Horario> horarios = horarioRepository.findByGrupoId(grupo.getId());
+
+            for (Horario horario : horarios) {
+                LocalTime horaInicio = validarFormatoHoraInicio(horario.getHoraInicio());
+                LocalTime horaFin = validarFormatoHoraFin(horario.getHoraFin());
+
+                if (horario.getDia().equals(dia)) {
+                    boolean traslapado = comprobarSiHayTraslape(inicio, fin, horaInicio, horaFin);
+                    if (traslapado){
+                        throw new IllegalArgumentException("El aula "+aula.getNombre()+" estará ocupada por el grupo con id "
+                                + grupoR.getId() + " en este horario.");
+                    }
+                }
+            }
+
+        }
+    }
+
+    public static boolean comprobarSiHayTraslape(LocalTime inicio1, LocalTime fin1,
+                                          LocalTime inicio2, LocalTime fin2){
+    return inicio1.isBefore(fin2) && fin1.isAfter(inicio2);
+    }
+
 }
